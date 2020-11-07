@@ -360,6 +360,9 @@ div.tocify {
 <li>
   <a href="lavaan.html">lavaan (R)</a>
 </li>
+<li>
+  <a href="RIMMAPIM.html">RIMMAPIM / lavaan (R)</a>
+</li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         
@@ -396,16 +399,16 @@ require(lavaan)
 
 # Load in the data. 
 ## Traditional RI-CLPM
-dat &lt;- read.table(&quot;/Users/jeroenmulder/Git/RICLPM/data/RICLPM.dat&quot;, 
+dat &lt;- read.table(&quot;data/RICLPM.dat&quot;, 
                   col.names = c(&quot;x1&quot;, &quot;x2&quot;, &quot;x3&quot;, &quot;x4&quot;, &quot;x5&quot;, &quot;y1&quot;, &quot;y2&quot;, &quot;y3&quot;, &quot;y4&quot;, &quot;y5&quot;)) 
 ## Extension 1
-datZ &lt;- read.table(&quot;/Users/jeroenmulder/Git/RICLPM/data/RICLPM-Z.dat&quot;,
+datZ &lt;- read.table(&quot;data/RICLPM-Z.dat&quot;,
                    col.names = c(&quot;x1&quot;, &quot;x2&quot;, &quot;x3&quot;, &quot;x4&quot;, &quot;x5&quot;, &quot;y1&quot;, &quot;y2&quot;, &quot;y3&quot;, &quot;y4&quot;, &quot;y5&quot;, &quot;z2&quot;, &quot;z1&quot;))
 ## Extension 2
-datMG &lt;- read.table(&quot;/Users/jeroenmulder/Git/RICLPM/data/RICLPM-MG.dat&quot;,
+datMG &lt;- read.table(&quot;data/RICLPM-MG.dat&quot;,
                     col.names = c(&quot;x1&quot;, &quot;x2&quot;, &quot;x3&quot;, &quot;x4&quot;, &quot;x5&quot;, &quot;y1&quot;, &quot;y2&quot;, &quot;y3&quot;, &quot;y4&quot;, &quot;y5&quot;, &quot;G&quot;)) 
 ## Extension 3
-datMI &lt;- read.table(&quot;/Users/jeroenmulder/Git/RICLPM/data/RICLPM-MI.dat&quot;,
+datMI &lt;- read.table(&quot;data/RICLPM-MI.dat&quot;,
                    col.names = c(&quot;x11&quot;, &quot;x12&quot;, &quot;x13&quot;,
                                  &quot;x21&quot;, &quot;x22&quot;, &quot;x23&quot;,
                                  &quot;x31&quot;, &quot;x32&quot;, &quot;x33&quot;,
@@ -416,7 +419,13 @@ datMI &lt;- read.table(&quot;/Users/jeroenmulder/Git/RICLPM/data/RICLPM-MI.dat&q
                                  &quot;y21&quot;, &quot;y22&quot;, &quot;y23&quot;,
                                  &quot;y31&quot;, &quot;y32&quot;, &quot;y33&quot;, 
                                  &quot;y41&quot;, &quot;y42&quot;, &quot;y43&quot;, 
-                                 &quot;y51&quot;, &quot;y52&quot;, &quot;y53&quot;))</code></pre>
+                                 &quot;y51&quot;, &quot;y52&quot;, &quot;y53&quot;))
+
+load(&#39;data/lisscd_riclpm_testdata.Rdata&#39;)
+ 
+
+#data liss wide
+datalw &lt;- lisscdn_mlsem_wide</code></pre>
 <hr />
 </div>
 <div id="the-ri-clpm" class="section level2 tabset tabset-fade">
@@ -1175,103 +1184,6 @@ RICLPM3.ext3.fit &lt;- cfa(RICLPM3.ext3, data = datMI, missing = &#39;ML&#39;)
 summary(RICLPM3.ext3.fit, standardized = T)</code></pre>
 <hr />
 </div>
-<div id="extra" class="section level3">
-<h3>Extra</h3>
-<p>Multiple indicator RI-CLPM, 5 waves with 3 indicators for each variable at each wave (30 observed variables). Fitting a model With constraints to ensure strong factorial invariance, with a random intercept for each indicator separately, for which a factor model is specified, with factor loadings equal to the within- person factor loadings.</p>
-<pre class="r"><code>RICLPM4.ext3 &lt;- &#39;
-  
-  ################
-  # BETWEEN PART #
-  ################
-  
-  # Create between factors (random intercepts) for each indicator separately.
-  RIX1 =~ 1*x11 + 1*x21 + 1*x31 + 1*x41 + 1*x51
-  RIX2 =~ 1*x12 + 1*x22 + 1*x32 + 1*x42 + 1*x52
-  RIX3 =~ 1*x13 + 1*x23 + 1*x33 + 1*x43 + 1*x53
-  
-  RIY1 =~ 1*y11 + 1*y21 + 1*y31 + 1*y41 + 1*y51
-  RIY2 =~ 1*y12 + 1*y22 + 1*y32 + 1*y42 + 1*y52
-  RIY3 =~ 1*y13 + 1*y23 + 1*y33 + 1*y43 + 1*y53
-  
-  # Create a single random intercept for al x variables, and another for all 
-  # y variables and constrain the factor loadings to be identical to the 
-  # within-person factor loadings. 
-  
-  RIX =~ a*RIX1 + b*RIX2 + c*RIX3
-  RIY =~ d*RIY1 + e*RIY2 + f*RIY3
-  
-  # Add (co)variance between two higher-order random intercepts. 
-  RIX ~~ RIY
-  RIX ~~ RIX
-  RIY ~~ RIY
-  
-  # Constrain measurement error variances of the second order factor model to 0. 
-  RIX1 ~~ 0*RIX1
-  RIX2 ~~ 0*RIX2
-  RIX3 ~~ 0*RIX3
-  RIY1 ~~ 0*RIY1
-  RIY2 ~~ 0*RIY2
-  RIY3 ~~ 0*RIY3
-  
-  ##################################
-  # WITHIN PART: MEASUREMENT MODEL #
-  ##################################
-  
-  # Factor models for x at 5 waves (constrained).
-  WFX1 =~ a*x11 + b*x12 + c*x13
-  WFX2 =~ a*x21 + b*x22 + c*x23
-  WFX3 =~ a*x31 + b*x32 + c*x33
-  WFX4 =~ a*x41 + b*x42 + c*x43
-  WFX5 =~ a*x51 + b*x52 + c*x53
-  
-  # Factor models for y at 5 waves (constrained).
-  WFY1 =~ d*y11 + e*y12 + f*y13
-  WFY2 =~ d*y21 + e*y22 + f*y23
-  WFY3 =~ d*y31 + e*y32 + f*y33
-  WFY4 =~ d*y41 + e*y42 + f*y43
-  WFY5 =~ d*y51 + e*y52 + f*y53
-  
-  # Constrained intercepts over time (this is necessary for strong factorial 
-  # invariance; without these contraints we have week factorial invariance). 
-  x11 + x21 + x31 + x41 + x51 ~ g*1
-  x12 + x22 + x32 + x42 + x52 ~ h*1
-  x13 + x23 + x33 + x43 + x53 ~ i*1
-  y11 + y21 + y31 + y41 + y51 ~ j*1
-  y12 + y22 + y32 + y42 + y52 ~ k*1
-  y13 + y23 + y33 + y43 + y53 ~ l*1
-  
-  # Free latent means from t = 2 onward (only do this in combination with the 
-  # constraints on the intercepts; without these, this would not be specified).
-  WFX2 + WFX3 + WFX4 + WFX5 + WFY2 + WFY3 + WFY4 + WFY5 ~ 1
-  
-  #########################
-  # WITHIN PART: DYNAMICS #
-  #########################
-  
-  # Specify the lagged effects between the within-person centered latent variables.
-  WFX2 + WFY2 ~ WFX1 + WFY1
-  WFX3 + WFY3 ~ WFX2 + WFY2
-  WFX4 + WFY4 ~ WFX3 + WFY3
-  WFX5 + WFY5 ~ WFX4 + WFY4
-  
-  # Estimate the correlations within the same wave.
-  WFX1 ~~ WFY1
-  WFX2 ~~ WFY2
-  WFX3 ~~ WFY3 
-  WFX4 ~~ WFY4
-  WFX5 ~~ WFY5
-  
-  ##########################
-  # ADDITIONAL CONSTRAINTS #
-  ##########################
-  
-  # Constrain covariance of the between factors and exogenous within factors to 0. 
-  RIX + RIY + RIX1 + RIX2 + RIX3 + RIY1 + RIY2 + RIY3 ~~ 0*WFY1 + 0*WFX1
-&#39;
-RICLPM4.ext3.fit &lt;- cfa(RICLPM4.ext3, data = datMI, missing = &#39;ML&#39;)
-summary(RICLPM4.ext3.fit, standardized = T)</code></pre>
-<hr />
-</div>
 <div id="step-4" class="section level3">
 <h3>Step 4</h3>
 <p>Multiple indicator RI-CLPM, 5 waves with 3 indicators for each variable at each wave (30 observed variables). Fitting a model with constraints to ensure strong factorial invariance, with the RI-CLPM at the latent level.</p>
@@ -1479,7 +1391,7 @@ $(document).ready(function ()  {
       theme: "bootstrap3",
       context: '.toc-content',
       hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
       },
       ignoreSelector: ".toc-ignore",
       scrollTo: 0

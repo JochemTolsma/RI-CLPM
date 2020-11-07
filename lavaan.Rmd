@@ -21,16 +21,16 @@ require(lavaan)
 
 # Load in the data. 
 ## Traditional RI-CLPM
-dat <- read.table("/Users/jeroenmulder/Git/RICLPM/data/RICLPM.dat", 
+dat <- read.table("data/RICLPM.dat", 
                   col.names = c("x1", "x2", "x3", "x4", "x5", "y1", "y2", "y3", "y4", "y5")) 
 ## Extension 1
-datZ <- read.table("/Users/jeroenmulder/Git/RICLPM/data/RICLPM-Z.dat",
+datZ <- read.table("data/RICLPM-Z.dat",
                    col.names = c("x1", "x2", "x3", "x4", "x5", "y1", "y2", "y3", "y4", "y5", "z2", "z1"))
 ## Extension 2
-datMG <- read.table("/Users/jeroenmulder/Git/RICLPM/data/RICLPM-MG.dat",
+datMG <- read.table("data/RICLPM-MG.dat",
                     col.names = c("x1", "x2", "x3", "x4", "x5", "y1", "y2", "y3", "y4", "y5", "G")) 
 ## Extension 3
-datMI <- read.table("/Users/jeroenmulder/Git/RICLPM/data/RICLPM-MI.dat",
+datMI <- read.table("data/RICLPM-MI.dat",
                    col.names = c("x11", "x12", "x13",
                                  "x21", "x22", "x23",
                                  "x31", "x32", "x33",
@@ -42,6 +42,12 @@ datMI <- read.table("/Users/jeroenmulder/Git/RICLPM/data/RICLPM-MI.dat",
                                  "y31", "y32", "y33", 
                                  "y41", "y42", "y43", 
                                  "y51", "y52", "y53"))
+
+load('data/lisscd_riclpm_testdata.Rdata')
+ 
+
+#data liss wide
+datalw <- lisscdn_mlsem_wide
 ```
 
 ---
@@ -144,6 +150,7 @@ CLPM.fit <- lavaan(CLPM, data = dat, missing = 'ML', meanstructure = T, int.ov.f
 summary(CLPM.fit, standardized = T)
 ```
 ---
+
 
 ### Constraints over time
 Imposing constraints to the model can be achieved through **pre-multiplication**. It means that we have to prepend the number that we want to fix the parameter to, and an asterisk, to the parameter in the model specification. For example, `F =~ 0*x1` fixes the factor loading of item `x1` to factor `F` to 0. Using pre-multiplication we can also constrain parameters to be the same by giving them the same label. Below we specify an RI-CLPM with the following constraints: 
@@ -1007,105 +1014,7 @@ summary(RICLPM3.ext3.fit, standardized = T)
 
 ---
 
-### Extra
-Multiple indicator RI-CLPM, 5 waves with 3 indicators for each variable at each wave (30 observed variables). Fitting a model With constraints to ensure strong factorial invariance, with a random intercept for each indicator separately, for which a factor model is specified, with factor loadings equal to the within- person factor loadings. 
 
-```{r RICLPM-MI4, eval = F, warning = F}
-RICLPM4.ext3 <- '
-  
-  ################
-  # BETWEEN PART #
-  ################
-  
-  # Create between factors (random intercepts) for each indicator separately.
-  RIX1 =~ 1*x11 + 1*x21 + 1*x31 + 1*x41 + 1*x51
-  RIX2 =~ 1*x12 + 1*x22 + 1*x32 + 1*x42 + 1*x52
-  RIX3 =~ 1*x13 + 1*x23 + 1*x33 + 1*x43 + 1*x53
-  
-  RIY1 =~ 1*y11 + 1*y21 + 1*y31 + 1*y41 + 1*y51
-  RIY2 =~ 1*y12 + 1*y22 + 1*y32 + 1*y42 + 1*y52
-  RIY3 =~ 1*y13 + 1*y23 + 1*y33 + 1*y43 + 1*y53
-  
-  # Create a single random intercept for al x variables, and another for all 
-  # y variables and constrain the factor loadings to be identical to the 
-  # within-person factor loadings. 
-  
-  RIX =~ a*RIX1 + b*RIX2 + c*RIX3
-  RIY =~ d*RIY1 + e*RIY2 + f*RIY3
-  
-  # Add (co)variance between two higher-order random intercepts. 
-  RIX ~~ RIY
-  RIX ~~ RIX
-  RIY ~~ RIY
-  
-  # Constrain measurement error variances of the second order factor model to 0. 
-  RIX1 ~~ 0*RIX1
-  RIX2 ~~ 0*RIX2
-  RIX3 ~~ 0*RIX3
-  RIY1 ~~ 0*RIY1
-  RIY2 ~~ 0*RIY2
-  RIY3 ~~ 0*RIY3
-  
-  ##################################
-  # WITHIN PART: MEASUREMENT MODEL #
-  ##################################
-  
-  # Factor models for x at 5 waves (constrained).
-  WFX1 =~ a*x11 + b*x12 + c*x13
-  WFX2 =~ a*x21 + b*x22 + c*x23
-  WFX3 =~ a*x31 + b*x32 + c*x33
-  WFX4 =~ a*x41 + b*x42 + c*x43
-  WFX5 =~ a*x51 + b*x52 + c*x53
-  
-  # Factor models for y at 5 waves (constrained).
-  WFY1 =~ d*y11 + e*y12 + f*y13
-  WFY2 =~ d*y21 + e*y22 + f*y23
-  WFY3 =~ d*y31 + e*y32 + f*y33
-  WFY4 =~ d*y41 + e*y42 + f*y43
-  WFY5 =~ d*y51 + e*y52 + f*y53
-  
-  # Constrained intercepts over time (this is necessary for strong factorial 
-  # invariance; without these contraints we have week factorial invariance). 
-  x11 + x21 + x31 + x41 + x51 ~ g*1
-  x12 + x22 + x32 + x42 + x52 ~ h*1
-  x13 + x23 + x33 + x43 + x53 ~ i*1
-  y11 + y21 + y31 + y41 + y51 ~ j*1
-  y12 + y22 + y32 + y42 + y52 ~ k*1
-  y13 + y23 + y33 + y43 + y53 ~ l*1
-  
-  # Free latent means from t = 2 onward (only do this in combination with the 
-  # constraints on the intercepts; without these, this would not be specified).
-  WFX2 + WFX3 + WFX4 + WFX5 + WFY2 + WFY3 + WFY4 + WFY5 ~ 1
-  
-  #########################
-  # WITHIN PART: DYNAMICS #
-  #########################
-  
-  # Specify the lagged effects between the within-person centered latent variables.
-  WFX2 + WFY2 ~ WFX1 + WFY1
-  WFX3 + WFY3 ~ WFX2 + WFY2
-  WFX4 + WFY4 ~ WFX3 + WFY3
-  WFX5 + WFY5 ~ WFX4 + WFY4
-  
-  # Estimate the correlations within the same wave.
-  WFX1 ~~ WFY1
-  WFX2 ~~ WFY2
-  WFX3 ~~ WFY3 
-  WFX4 ~~ WFY4
-  WFX5 ~~ WFY5
-  
-  ##########################
-  # ADDITIONAL CONSTRAINTS #
-  ##########################
-  
-  # Constrain covariance of the between factors and exogenous within factors to 0. 
-  RIX + RIY + RIX1 + RIX2 + RIX3 + RIY1 + RIY2 + RIY3 ~~ 0*WFY1 + 0*WFX1
-'
-RICLPM4.ext3.fit <- cfa(RICLPM4.ext3, data = datMI, missing = 'ML')
-summary(RICLPM4.ext3.fit, standardized = T)
-```
-
----
 
 ### Step 4
  Multiple indicator RI-CLPM, 5 waves with 3 indicators for each variable at each wave (30 observed variables). Fitting a model with constraints to ensure strong factorial invariance, with the RI-CLPM at the latent level.

@@ -9,6 +9,8 @@ navbar:
       href: mplus.html
     - text: "lavaan (R)"
       href: lavaan.html
+    - text: "RIMMAPIM / lavaan (R)"
+      href: RIMMAPIM.html
 output:
   html_document:
     theme: flatly
