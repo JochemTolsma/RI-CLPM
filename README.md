@@ -1,3 +1,5 @@
+# Homepage: https://jochemtolsma.github.io/RI-CLPM/
+
 # RI-CLPM & Extensions
 
 Here we provide Lavaan-code and Mplus syntax for the increasingly popular Random-Intercept Cross-Lagged Panel Model, as well as some popular extensions.
